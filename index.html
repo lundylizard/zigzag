@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Crash PS1 — Zigzagging Practice</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="app">
+        <header>
+            <h1>Crash Bandicoot ZigZag Simulation</h1>
+            <div>
+                <button id="btnReset" class="primary">Reset (R)</button>
+                <button id="btnPause">Pause (P)</button>
+            </div>
+        </header>
+
+        <section class="pane" id="left">
+            <h2>3D Course</h2>
+            <div id="viewWrap">
+                <canvas id="view3d" width="1280" height="420"></canvas>
+                <div class="hud">
+                    <div class="chip" id="camModeChip">Cam: Behind</div>
+                    <div class="chip" id="stateChip">Grounded</div>
+                    <div class="chip">Distance to goal: <span id="distToGoal">0.00</span> u</div>
+                    <div class="chip">Elapsed: <span id="elapsed">0.00</span> s</div>
+                </div>
+                <canvas id="viewTop" class="minimap"></canvas>
+            </div>
+            <div class="controls">
+                <fieldset>
+                    <legend>Course & Physics</legend>
+                    <div class="ctrl"><label>Goal distance (u)</label><input id="goalInput" type="number" min="10"
+                            max="2000" step="10" value="100"></div>
+                    <div class="ctrl"><label>Course width (u)</label><input id="courseWidth" type="number" min="4"
+                            max="60" step="1" value="16"></div>
+                    <div class="ctrl"><label>Obstacles (count)</label><input id="obsCount" type="number" min="0"
+                            max="200" step="1" value="20"></div>
+                    <div class="ctrl"><label>Obstacle size (min–max u)</label>
+                        <div style="display:flex; gap:8px">
+                            <input id="obsSizeMin" type="number" min="0.5" max="10" step="0.1" value="1.2">
+                            <input id="obsSizeMax" type="number" min="0.5" max="12" step="0.1" value="3.0">
+                        </div>
+                    </div>
+                    <div class="ctrl"><label>Obstacle height (min–max u)</label>
+                        <div style="display:flex; gap:8px">
+                            <input id="obsHMin" type="number" min="0.5" max="8" step="0.1" value="1.0">
+                            <input id="obsHMax" type="number" min="0.5" max="10" step="0.1" value="2.5">
+                        </div>
+                    </div>
+                    <div class="ctrl"><label>Random seed</label><input id="courseSeed" type="text" value="crash-zzz">
+                    </div>
+                    <div class="ctrl"><button id="btnRegen" class="secondary" type="button">Regenerate
+                            obstacles</button></div>
+                    <div class="ctrl"><label>Base speed (u/s)</label><input id="baseSpeed" type="number" min="1"
+                            max="30" step="0.1" value="6"></div>
+                    <div class="ctrl"><label>Diagonal boost ×</label><input id="diagBoost" type="number" min="1"
+                            max="2.2" step="0.01" value="1.414"></div>
+                    <div class="ctrl"><label>Ground turn rate (°/s)</label><input id="turnGround" type="number" min="60"
+                            max="1440" step="10" value="900"></div>
+                    <div class="ctrl"><label>Air turn rate (°/s)</label><input id="turnAir" type="number" min="10"
+                            max="720" step="5" value="120"></div>
+                    <div class="ctrl"><label>Jump speed (u/s)</label><input id="jumpSpeed" type="number" min="1"
+                            max="30" step="0.1" value="9"></div>
+                    <div class="ctrl"><label>Gravity (u/s²)</label><input id="gravity" type="number" min="-50" max="-1"
+                            step="0.1" value="-20"></div>
+                </fieldset>
+                <fieldset>
+                    <legend>Readouts & Input</legend>
+                    <div class="row">
+                        <div class="stat">
+                            <div class="label">Forward speed → (to goal)</div>
+                            <div class="value" id="fwdV">0.00</div>
+                        </div>
+                        <div class="stat">
+                            <div class="label">Heading (°)</div>
+                            <div class="value" id="yawVal">0.0°</div>
+                        </div>
+                        <div class="stat">
+                            <div class="label">Horizontal speed |v|</div>
+                            <div class="value" id="magV">0.00</div>
+                        </div>
+                    </div>
+                    <div style="height:8px"></div>
+                    <div class="row" style="align-items:center">
+                        <div style="flex:0 0 auto;text-align:center">
+                            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Live Input</div>
+                            <div class="kbd">
+                                <div></div>
+                                <div class="key" id="keyUp">W</div>
+                                <div></div>
+                                <div class="key" id="keyLeft">A</div>
+                                <div class="key" id="keyDown">S</div>
+                                <div class="key" id="keyRight">D</div>
+                            </div>
+                            <div style="display:flex;justify-content:center;margin-top:6px;gap:8px;align-items:center">
+                                <div class="key" id="keySpace" style="width:auto;padding:0 10px">SPACE</div>
+                            </div>
+                        </div>
+                        <div style="flex:1 1 auto">
+                            <div class="row">
+                                <div class="stat">
+                                    <div class="label">Input direction</div>
+                                    <div class="value" id="inputDir">—</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="label">Diagonal?</div>
+                                    <div class="value" id="isDiag">No</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="label">Ground / Air turn</div>
+                                    <div class="value" id="turnRateLabel">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="footer">
+                Controls: <b>W</b> forward, <b>A/D</b> strafe, <b>SPACE</b> jump, <b>R</b> reset, <b>P</b> pause.
+                <b>CONTROLLER</b> works too.
+                This tool is still in heavy development. Made by lundylizard.
+            </div>
+        </section>
+
+        <section class="pane" id="right">
+            <h2>Telemetry</h2>
+            <div id="charts">
+                <div class="chart"><canvas id="chartFwd" width="1280" height="120"></canvas></div>
+                <div class="chart"><canvas id="chartYaw" width="1280" height="120"></canvas></div>
+                <div class="chart"><canvas id="chartETA" width="1280" height="120"></canvas></div>
+                <div class="chart"><canvas id="chartMag" width="1280" height="120"></canvas></div>
+            </div>
+        </section>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

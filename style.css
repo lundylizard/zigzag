@@ -1,0 +1,284 @@
+:root {
+    --bg: #1b1b1b;
+    --panel: #222222;
+    --panel-2: #222222;
+    --accent: #000000;
+    --accent-2: #000000;
+    --good: #bbbbbb;
+    --warn: #999999;
+    --bad: #777777;
+    --grid: #cccccc;
+    --text: #ffffff;
+    --muted: #aaaaaa;
+}
+
+* {
+    box-sizing: border-box
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"
+}
+
+.app {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 12px;
+    height: 100%;
+    padding: 12px
+}
+
+header {
+    grid-column: 1/-1;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between
+}
+
+header h1 {
+    font-size: 16px;
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: .2px
+}
+
+header .small {
+    color: var(--muted);
+    font-size: 12px
+}
+
+.pane {
+    background: linear-gradient(180deg, var(--panel), #151515);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0
+}
+
+.pane h2 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    margin: 0;
+    padding: 10px 12px;
+    border-bottom: 1px solid #000000;
+    background: rgba(255, 255, 255, .04)
+}
+
+.content {
+    padding: 10px 12px
+}
+
+.row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap
+}
+
+.stat {
+    background: var(--panel-2);
+    border: 1px solid #333333;
+    border-radius: 12px;
+    padding: 8px 10px;
+    flex: 1;
+    min-width: 120px
+}
+
+.stat .label {
+    font-size: 11px;
+    color: var(--muted)
+}
+
+.stat .value {
+    font-size: 18px;
+    font-weight: 700
+}
+
+#viewWrap {
+    position: relative
+}
+
+canvas {
+    display: block
+}
+
+#view3d {
+    width: 100%;
+    height: 420px;
+    background: linear-gradient(#000000 55%, #111111 55%);
+    border-bottom: 1px solid #444444
+}
+
+.hud {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center
+}
+
+.hud .chip {
+    background: rgba(0, 0, 0, .45);
+    border: 1px solid #444444;
+    color: #cccccc;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 12px
+}
+
+.controls {
+    padding: 10px 12px;
+    border-top: 1px solid #2a2a2a;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 12px
+}
+
+fieldset {
+    border: 1px solid #333333;
+    border-radius: 12px;
+    padding: 10px 12px
+}
+
+fieldset legend {
+    color: var(--muted);
+    padding: 0 6px
+}
+
+.ctrl {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    margin: 6px 0
+}
+
+input[type="range"] {
+    width: 100%
+}
+
+input[type="number"] {
+    width: 90px;
+    background: #111111;
+    color: var(--text);
+    border: 1px solid #444444;
+    border-radius: 8px;
+    padding: 4px 6px
+}
+
+button {
+    border: none;
+    background: var(--panel-2);
+    border: 1px solid #444444;
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer
+}
+
+button.primary {
+    background: linear-gradient(180deg, #222222, #1a1a1a);
+    border-color: #444444
+}
+
+button:active {
+    transform: translateY(1px)
+}
+
+.kbd {
+    display: grid;
+    grid-template-columns: repeat(3, 38px);
+    gap: 6px;
+    align-items: center;
+    justify-content: center
+}
+
+.key {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid #444444;
+    background: #111111;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    color: #cccccc
+}
+
+.key.active {
+    background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
+    border-color: #555555;
+    box-shadow: 0 0 0 2px rgba(200, 200, 200, .2) inset
+}
+
+#charts {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 10px 12px
+}
+
+.chart {
+    height: 120px;
+    background: #111111;
+    border-top: 1px solid #2a2a2a
+}
+
+.chart canvas {
+    width: 100%;
+    height: 120px;
+}
+
+.footer {
+    padding: 8px 12px;
+    border-top: 1px solid #2a2a2a;
+    color: #bbbbbb;
+    font-size: 12px
+}
+
+.gridline {
+    stroke: #444444
+}
+
+.goal-banner {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    color: #cccccc;
+    font-weight: 700
+}
+
+@media (max-width: 1100px) {
+    .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+    }
+}
+
+#viewWrap {
+    position: relative;
+}
+
+#viewTop.minimap {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: 160px;
+    height: 280px;
+    background: rgba(17, 17, 17, 0.95);
+    border: 1px solid #444444;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
