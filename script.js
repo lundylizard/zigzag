@@ -58,50 +58,59 @@
         };
     }
 
-    const keys = { w: false, a: false, s: false, d: false, space: false };
+    const keySources = {
+        keyboard: { w: false, a: false, s: false, d: false, space: false },
+        gamepad: { w: false, a: false, s: false, d: false, space: false },
+    };
 
-    function setKey(key, keyDown) {
-        if (key in keys) {
-            keys[key] = keyDown;
-            markKeys();
+    const keys = { w: false, a: false, s: false, d: false, space: false }; // combined
+
+    function recomputeKeys() {
+        for (const k in keys) {
+            keys[k] = !!(keySources.keyboard[k] || keySources.gamepad[k]);
+        }
+        markKeys();
+    }
+
+    function setKeyKeyboard(key, keyDown) {
+        if (key in keySources.keyboard) {
+            keySources.keyboard[key] = keyDown;
+            recomputeKeys();
         }
     }
 
     function handleKey(event, down) {
         const c = event.code;
-        let handled = false;
+        let handled = true;
 
         switch (c) {
             case 'KeyW':
             case 'ArrowUp':
-                setKey('w', down);
-                handled = true;
+                setKeyKeyboard('w', down);
                 break;
             case 'KeyA':
             case 'ArrowLeft':
-                setKey('a', down);
-                handled = true;
+                setKeyKeyboard('a', down);
                 break;
             case 'KeyS':
             case 'ArrowDown':
-                setKey('s', down);
-                handled = true;
+                setKeyKeyboard('s', down);
                 break;
             case 'KeyD':
             case 'ArrowRight':
-                setKey('d', down);
-                handled = true;
+                setKeyKeyboard('d', down);
                 break;
             case 'Space':
-                setKey('space', down);
-                handled = true;
+                setKeyKeyboard('space', down);
                 break;
+            default:
+                handled = false;
         }
 
         if (!handled) {
             const k = (event.key || '').toLowerCase();
             if (k === ' ' || k === 'spacebar') {
-                setKey('space', down);
+                setKeyKeyboard('space', down);
                 handled = true;
             }
         }
@@ -190,29 +199,33 @@
 
     function updateGamepad() {
         const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-        let selectedGamePad = null;
+        let gp = null;
 
-        if (GP.index != null) selectedGamePad = pads[GP.index];
-
-        if (!selectedGamePad) for (const gamePad of pads) if (gamePad && gamePad.connected) {
-            selectedGamePad = gamePad;
-            GP.index = gamePad.index;
+        if (GP.index != null) gp = pads[GP.index];
+        if (!gp) for (const p of pads) if (p && p.connected) {
+            gp = p;
+            GP.index = p.index;
             break;
         }
 
-        if (!selectedGamePad) return;
+        if (!gp) {
+            // no gamepad: clear gamepad source so keyboard is sole input
+            for (const k in keySources.gamepad) keySources.gamepad[k] = false;
+            recomputeKeys();
+            return;
+        }
 
-        const { up, down, left, right } = readDpad(selectedGamePad);
-        setKey('w', up);
-        setKey('s', down);
-        setKey('a', left);
-        setKey('d', right);
+        const { up, down, left, right } = readDpad(gp);
+        keySources.gamepad.w = up;
+        keySources.gamepad.s = down;
+        keySources.gamepad.a = left;
+        keySources.gamepad.d = right;
+        keySources.gamepad.space = !!gp.buttons?.[0]?.pressed || !!gp.buttons?.[1]?.pressed;
 
-        const jump = selectedGamePad.buttons?.[0]?.pressed || selectedGamePad.buttons?.[1]?.pressed;
-        setKey('space', !!jump);
+        if (btnPressed(gp, 9)) paused = !paused;
+        if (btnPressed(gp, 8)) reset();
 
-        if (btnPressed(selectedGamePad, 9)) paused = !paused;
-        if (btnPressed(selectedGamePad, 8)) reset();
+        recomputeKeys();
     }
 
     const view = document.getElementById('view3d');
