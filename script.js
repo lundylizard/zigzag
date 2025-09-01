@@ -14,6 +14,9 @@
     }
 
     let camMode = 'behind';
+    let fps = 0;
+    let fpsMs = 0;
+    let fpsAlpha = 0.1;
 
     const ABS = {
         charWidth: 1.0,
@@ -585,17 +588,59 @@
     }
 
     let lastT = performance.now();
+
     function step() {
         const now = performance.now();
         let dt = (now - lastT) / 1000;
         if (dt > 0.05) dt = 0.05;
+        const instFps = 1 / dt;
+        fps = fps ? (fps * (1 - fpsAlpha) + instFps * fpsAlpha) : instFps;
+        fpsMs = fps ? (1000 / fps) : 0;
         lastT = now;
         updateGamepad();
         if (!paused && !sim.finished) update(dt);
         draw();
         document.getElementById('camModeChip').textContent = `Cam: ${camMode}`;
+        // document.getElementById('fpsHud').textContent = `FPS: ${fps.toFixed(0)} (${fpsMs.toFixed(1)} ms)`;
         requestAnimationFrame(step);
     }
+
+    (function drawFPS() {
+        const g = ctxView;
+        const dpr = window.devicePixelRatio || 1;
+
+        const text = `FPS: ${fps.toFixed(0)}  (${fpsMs.toFixed(1)} ms)`;
+
+        g.save();
+        g.font = `${12 * dpr}px system-ui, -apple-system, Segoe UI, Roboto, sans-serif`;
+        g.textBaseline = 'top';
+
+        // measure & backdrop
+        const metrics = g.measureText(text);
+        const pad = 6 * dpr;
+        const w = metrics.width + pad * 2;
+        const h = 18 * dpr + pad * 2;
+        const x = pad;
+        const y = pad;
+
+        // background pill
+        g.fillStyle = 'rgba(0,0,0,0.55)';
+        const r = 6 * dpr;
+        g.beginPath();
+        g.moveTo(x + r, y);
+        g.arcTo(x + w, y, x + w, y + h, r);
+        g.arcTo(x + w, y + h, x, y + h, r);
+        g.arcTo(x, y + h, x, y, r);
+        g.arcTo(x, y, x + w, y, r);
+        g.closePath();
+        g.fill();
+
+        // text
+        g.fillStyle = '#ffffff';
+        g.fillText(text, x + pad, y + pad);
+
+        g.restore();
+    })();
 
     function inputVector() {
         if (camMode === 'behind') {
