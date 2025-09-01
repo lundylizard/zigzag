@@ -56,7 +56,7 @@
                     <div class="ctrl"><button id="btnRegen" class="secondary" type="button">Regenerate
                             obstacles</button></div>
                     <div class="ctrl"><label>Base speed (u/s)</label><input id="baseSpeed" type="number" min="1"
-                            max="30" step="0.1" value="6"></div>
+                            max="30" step="0.1" value="10"></div>
                     <div class="ctrl"><label>Diagonal boost ×</label><input id="diagBoost" type="number" min="1"
                             max="2.2" step="0.01" value="1.414"></div>
                     <div class="ctrl"><label>Ground turn rate (°/s)</label><input id="turnGround" type="number" min="60"
@@ -64,9 +64,9 @@
                     <div class="ctrl"><label>Air turn rate (°/s)</label><input id="turnAir" type="number" min="10"
                             max="720" step="5" value="120"></div>
                     <div class="ctrl"><label>Jump speed (u/s)</label><input id="jumpSpeed" type="number" min="1"
-                            max="30" step="0.1" value="9"></div>
-                    <div class="ctrl"><label>Gravity (u/s²)</label><input id="gravity" type="number" min="-50" max="-1"
-                            step="0.1" value="-20"></div>
+                            max="30" step="1" value="20"></div>
+                    <div class="ctrl"><label>Gravity (u/s²)</label><input id="gravity" type="number" min="-70" max="-1"
+                            step="1" value="-65"></div>
                 </fieldset>
                 <fieldset>
                     <legend>Readouts & Input</legend>
@@ -141,3 +141,4 @@
 
 
 </html>
+
