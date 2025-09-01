@@ -91,14 +91,14 @@
                             <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Live Input</div>
                             <div class="kbd">
                                 <div></div>
-                                <div class="key" id="keyUp">W</div>
+                                <div class="key" id="keyUp" data-action="forward">W</div>
                                 <div></div>
-                                <div class="key" id="keyLeft">A</div>
-                                <div class="key" id="keyDown">S</div>
-                                <div class="key" id="keyRight">D</div>
+                                <div class="key" id="keyLeft" data-action="left">A</div>
+                                <div class="key" id="keyDown" data-action="back">S</div>
+                                <div class="key" id="keyRight" data-action="right">D</div>
                             </div>
                             <div style="display:flex;justify-content:center;margin-top:6px;gap:8px;align-items:center">
-                                <div class="key" id="keySpace" style="width:auto;padding:0 10px">SPACE</div>
+                                <div class="key" id="keySpace" data-action="jump" style="width:auto;padding:0 10px">SPACE</div>
                             </div>
                         </div>
                         <div style="flex:1 1 auto">
@@ -121,7 +121,8 @@
                 </fieldset>
             </div>
             <div class="footer">
-                Controls: <b>W</b> forward, <b>A/D</b> strafe, <b>SPACE</b> jump, <b>R</b> reset, <b>P</b> pause, <b>C</b> switch cam mode.
+                Controls: <b>W</b> forward, <b>A/D</b> strafe, <b>SPACE</b> jump, <b>R</b> reset, <b>P</b> pause,
+                <b>C</b> switch cam mode.
                 <b>CONTROLLER</b> works too.
                 This tool is still in heavy development. Made by lundylizard.
             </div>
@@ -140,6 +141,4 @@
     <script src="script.js"></script>
 </body>
 
-
 </html>
-

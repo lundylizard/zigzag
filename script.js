@@ -61,9 +61,150 @@
         };
     }
 
+    const ACTIONS = ['forward', 'left', 'back', 'right', 'jump'];
+
+    const DEFAULT_BINDINGS = {
+        forward: 'KeyW',
+        left: 'KeyA',
+        back: 'KeyS',
+        right: 'KeyD',
+        jump: 'Space',
+    };
+
+    const ACTION_TO_KEYS_FIELD = {
+        forward: 'w',
+        left: 'a',
+        back: 's',
+        right: 'd',
+        jump: 'space',
+    };
+
+    const BINDINGS_STORAGE_KEY = 'zigzag.bindings.v1';
+
+    function loadBindings() {
+        try {
+            const raw = localStorage.getItem(BINDINGS_STORAGE_KEY);
+            if (!raw) return { ...DEFAULT_BINDINGS };
+            const parsed = JSON.parse(raw);
+            for (const a of ACTIONS) if (!parsed[a]) parsed[a] = DEFAULT_BINDINGS[a];
+            return parsed;
+        } catch {
+            return { ...DEFAULT_BINDINGS };
+        }
+    }
+
+    function saveBindings() {
+        try {
+            localStorage.setItem(BINDINGS_STORAGE_KEY, JSON.stringify(bindings));
+        } catch {
+
+        }
+    }
+
+    let bindings = loadBindings();
+
+    function codeToLabel(code) {
+        if (!code) return '-';
+        if (code === 'Space') return 'SPACE';
+        if (code.startsWith('Key')) return code.slice(3).toUpperCase();
+        if (code.startsWith('Digit')) return code.slice(5);
+        if (code.startsWith('Numpad')) return 'NP' + code.slice(6);
+        const arrows = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' };
+        if (code in arrows) return arrows[code];
+        return code;
+    }
+
+    const keyEls = {
+        forward: document.getElementById('keyUp'),
+        left: document.getElementById('keyLeft'),
+        back: document.getElementById('keyDown'),
+        right: document.getElementById('keyRight'),
+        jump: document.getElementById('keySpace'),
+    };
+
+    function renderBindings() {
+        for (const action of ACTIONS) {
+            const el = keyEls[action];
+            if (!el) continue;
+            el.textContent = codeToLabel(bindings[action]);
+            el.classList.toggle('unbound', !bindings[action]);
+        }
+    }
+    renderBindings();
+
+    // rebinding state
+    let rebindAction = null;
+    let rebindTargetEl = null;
+
+    function beginRebind(action, el) {
+        cancelRebind();
+        rebindAction = action;
+        rebindTargetEl = el;
+        if (el) {
+            el.classList.add('listening');
+            el.textContent = '...';
+        }
+    }
+
+    function cancelRebind() {
+        if (rebindTargetEl) rebindTargetEl.classList.remove('listening');
+        rebindAction = null;
+        rebindTargetEl = null;
+        renderBindings();
+    }
+
+    function setBinding(action, code) {
+        if (!action) return;
+        // unassign from others if reused
+        for (const a of ACTIONS) {
+            if (a !== action && bindings[a] === code) bindings[a] = null;
+        }
+        bindings[action] = code;
+        saveBindings();
+        renderBindings();
+    }
+
+    for (const action of ACTIONS) {
+        const el = keyEls[action];
+        if (!el) continue;
+        el.style.cursor = 'pointer';
+        el.title = 'Click to rebind (right-click to clear)';
+        el.addEventListener('click', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            beginRebind(action, el);
+        });
+        el.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            setBinding(action, null);
+        });
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (!rebindAction) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (e.code === 'Escape') {
+            cancelRebind();
+            return;
+        }
+
+        if (e.code === 'Backspace') {
+            setBinding(rebindAction, null);
+            cancelRebind();
+            return;
+        }
+
+        if (e.ctrlKey || e.metaKey || e.altKey) return; // ignore pure modifiers
+
+        setBinding(rebindAction, e.code);
+        cancelRebind();
+    }, true);
+
     const keySources = {
         keyboard: { w: false, a: false, s: false, d: false, space: false },
-        gamepad: { w: false, a: false, s: false, d: false, space: false },
+        gamepad: { w: false, a: false, s: false, d: false, space: false }
     };
 
     const keys = { w: false, a: false, s: false, d: false, space: false }; // combined
@@ -83,38 +224,38 @@
     }
 
     function handleKey(event, down) {
-        const c = event.code;
-        let handled = true;
+        if (rebindAction) return;
 
-        switch (c) {
-            case 'KeyW':
-            case 'ArrowUp':
-                setKeyKeyboard('w', down);
+        const code = event.code;
+        let handled = false;
+
+        let hitAction = null;
+        for (const action of ACTIONS) {
+            if (bindings[action] && bindings[action] === code) {
+                hitAction = action;
                 break;
-            case 'KeyA':
-            case 'ArrowLeft':
-                setKeyKeyboard('a', down);
-                break;
-            case 'KeyS':
-            case 'ArrowDown':
-                setKeyKeyboard('s', down);
-                break;
-            case 'KeyD':
-            case 'ArrowRight':
-                setKeyKeyboard('d', down);
-                break;
-            case 'Space':
-                setKeyKeyboard('space', down);
-                break;
-            default:
-                handled = false;
+            }
         }
 
+        if (!hitAction) {
+            const arrows = { ArrowUp: 'forward', ArrowLeft: 'left', ArrowDown: 'back', ArrowRight: 'right' };
+            if (code in arrows) hitAction = arrows[code];
+        }
+
+        if (hitAction) {
+            const keyField = ACTION_TO_KEYS_FIELD[hitAction];
+            setKeyKeyboard(keyField, down);
+            handled = true;
+        }
+
+        // keep other hotkeys workin (add menu later with every keybind)
         if (!handled) {
-            const k = (event.key || '').toLowerCase();
-            if (k === ' ' || k === 'spacebar') {
-                setKeyKeyboard('space', down);
-                handled = true;
+            switch (code) {
+                case 'KeyR': if (down) reset(); handled = true; break;
+                case 'KeyP': if (down) paused = !paused; handled = true; break;
+                case 'KeyC': if (down) camMode = (camMode === 'behind') ? 'side' : 'behind'; handled = true; break;
+                case 'KeyQ': if (down) sim.yaw -= 45; handled = true; break;
+                case 'KeyE': if (down) sim.yaw += 45; handled = true; break;
             }
         }
 
@@ -212,7 +353,7 @@
         }
 
         if (!gp) {
-            // no gamepad: clear gamepad source so keyboard is sole input
+            // clear gamepad source so keyboard is sole input
             for (const k in keySources.gamepad) keySources.gamepad[k] = false;
             recomputeKeys();
             return;
@@ -272,7 +413,6 @@
     document.getElementById('btnReset').onclick = () => reset();
     document.getElementById('btnPause').onclick = () => { paused = !paused; };
 
-    // ===== Charts =====
     class Spark {
         constructor(canvas, { label, yLabel, auto = true, yMin = -1, yMax = 1, color = '#ffffff', colorFn = null } = {}) {
             this.canvas = canvas;
@@ -605,7 +745,7 @@
         requestAnimationFrame(step);
     }
 
-    (function drawFPS() {
+    function drawFPS() {
         const g = ctxView;
         const dpr = window.devicePixelRatio || 1;
 
@@ -640,7 +780,7 @@
         g.fillText(text, x + pad, y + pad);
 
         g.restore();
-    })();
+    }
 
     function inputVector() {
         if (camMode === 'behind') {
@@ -1133,16 +1273,6 @@
         chartMag?.draw();
         drawTop();
     }
-
-    window.addEventListener('keydown', e => {
-        if (e.key === 'r' || e.key === 'R') reset();
-        if (e.key === 'p' || e.key === 'P') paused = !paused;
-        if (e.key === 'q' || e.key === 'Q') sim.yaw -= 45;
-        if (e.key === 'e' || e.key === 'E') sim.yaw += 45;
-        if (e.key === 'c' || e.key === 'C') {
-            camMode = (camMode === 'behind') ? 'side' : 'behind';
-        }
-    });
 
     reset();
     markKeys();

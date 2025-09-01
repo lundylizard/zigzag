@@ -282,3 +282,12 @@ button:active {
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
+
+.key.listening {
+    outline: 2px solid var(--good);
+    background: rgba(0, 255, 128, 0.12);
+}
+
+.key.unbound {
+    color: #f87171;
+}
